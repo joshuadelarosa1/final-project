@@ -25,7 +25,7 @@
 ;        (repeat n {??}))
 
 ;;; (define octave midi-note dur) -> list? 
-;;; midi-note -> integer? (0 <= note <= 128)
+;;; midi-note -> integer? (0 <= note <= 121) (since adding 7)
 ;;; dur -> dur? 
 ;;; returns list of notes in an octave 
 (define octave 
@@ -37,9 +37,27 @@
 
 "Create 3 different actives put them par and then map t"
 
-; test
-; test 
 
-; test
+
+
+
+(define jukebox 
+    (lambda (base-midi dur)
+    {??}))
+
+
+;;; (define jukebox-husk base-midi dur) -> music output
+;;; base-midi -> integer? (0 <= note <= 121) (since adding 7)
+;;; dur -> dur?
+;;; calls jukebox with either the given arguments, or if those are wrong fills them in with a base 
+;;; 60 midi value, and qn dur 
+;;; eventually add in preference for whether want certain illusion or not 
+(define jukebox-husk
+    (lambda (base-midi dur)
+        (cond 
+            [(and (dur? dur) (and (< base-midi 121) (< 0 base-midi))) (jukebox base-midi dur)]
+            [(dur? dur) (jukebox 60 dur)]
+            [(and (< base-midi 121) (< 0 base-midi)) (jukebox base-midi qn)]
+            [else (jukebox 60 qn)])))
 
 
