@@ -15,23 +15,16 @@
 
 (volume (note 60 qn) .4)
 
-;;; (define octave midi-note dur) -> list? 
+;;; (define octave midi-note dwn/up) -> integer? 
 ;;; midi-note -> integer? (0 <= note <= 121) (since adding 7)
-;;; dur -> dur? 
-;;; returns list of notes in an octave 
-; (define octave 
-;     (lambda (midi-note dur)
-;         (list (note midi-note dur) (note (+ 1 midi-note dur))
-;               (note (+ 2 midi-note) dur) (note (+ 3 midi-note dur))
-;               (note (+ 4 midi-note dur)) (note (+ 5 midi-note dur))
-;               (note (+ 6 midi-note dur)) (note (+ 7 midi-note dur)))))
+;;; dwn/up -> integer? [-5 5]
+;;; This returns a middi-note however many octaves up or down the user indicates thorugh dwn/up. 
 
-(define octave
-    (lambda (midi-note)
-        (list midi-note (+ 1 midi-note)
-              (+ 2 midi-note) (+ 3 midi-note)
-              (+ 4 midi-note) (+ 5 midi-note)
-              (+ 6 midi-note) (+ 7 midi-note))))
+(define octave 
+    (lambda (midi-note dwn/up)
+        (+ midi-note (* dwn/up 12))))
+
+(octave 60 -1)
 
 ;;; (define raising-volume midi-note) -> list?
 (define raising-volume
@@ -52,7 +45,7 @@
              (apply seq (map (lambda (m) (note m dur)) (octave midi-note)))
              (apply seq (map (lambda (x y) (volume x y)) (octave (+ midi-note 8)) lowering-volume))))))
 
-(sephar-ton 60 qn 1)
+(shepard-tone 60 qn 1)
 
 ;;; (define risset-rhythm __ __) -> composition?
 ;;;
@@ -60,43 +53,23 @@
 (define risset-rhythm {??})
 
 
-;;; (twinkle-twinkle-litle-star) --> composition?
+;;; (twinkle-twinkle-litle-star) --> list?
+;;; list of the midi-note values that make up twinkle-twinkle-little-star
 
-(define ttls
-    (seq (note )
-         (note )
-         (note )
-         (note )
-         (note )
-         (note )
-         (note )
-         (note )
-         (note )
-         (note )
-         (note )
-         (note )
-         (note )
-         (note )
-         (note )
-         (note )
-         (note )
-         (note )
-         (note )
-         (note )
-         (note )
-         (note )
-         (note )
-         (note )
-         (note )
-         (note )
-         (note )
-         (note )
-         (note )
-         (note )
-         (note )
-         (note )
-    ))
+(define twinkle-twinkle-litle-star
+    (list 60 60 67 67 69 69 67
+          65 65 64 64 62 62 60
+          67 67 65 65 64 64 62
+          67 67 65 65 64 64 62))
 
+;;; (original melody) --> composition?
+;;;     melody : list?
+;;; Plays the origional given melody before going through the illusion.
+
+(define original
+    (lambda (melody)
+    (apply seq (map (lambda (x) (note x qn)) melody))))
+(original twinkle-twinkle-litle-star)
 
 ;;; (mysterious-melodies melody) --> compositon?
 ;;;     melody : string?
@@ -104,8 +77,11 @@
 
 (define mysterious-melodies
     (lambda (melody)
-        {??}))
+        (let ([illussion-notes (map (lambda (x) (octave x (- (random 3) 1))) melody)])
+        (apply seq (map (lambda (x) (note x qn)) illussion-notes))
+        )))
 
+(mysterious-melodies twinkle-twinkle-litle-star)
 
 ;;; (define jukebox base-midi dur choice n_ -> music output?
 ;;;base-midi -> integer? (10 <= note <= 112) (since adding going octaves above and below)
@@ -118,7 +94,7 @@
         (cond 
             [(= 0 choice) (jukebox base-midi dur (+ 1 (random 3)))]
             [(= 1 choice) (shepard-tone base-midi dur n)]
-            [(= 2 choice) (mysterious-melody melody)]
+            [(= 2 choice) (mysterious-melodies melody)]
             [(= 3 choice) (risset-rhythm {??})])))
 
 
