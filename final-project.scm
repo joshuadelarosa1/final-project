@@ -26,12 +26,38 @@
 
 (octave 60 -1)
 
-;;; (define raising-volume midi-note) -> list?
-(define raising-volume
-    (list .3 .4 .5 .6 .7 .8 .9 1))
+(define main-octave
+    (lambda (midi-note n)
+        (make-list n midi-note)))
 
-(define lowering-volume
-    (list 1 .9 .8 .7 .6 .5 .4 .3))
+(define higher-octave
+    (lambda (midi-note n)
+        (make-list n (- midi-note 12))))
+
+(define lower-octave
+    (lambda (midi-note n)
+        (make-list n (+ midi-note 12))))
+
+;;; (define raising-volume midi-note) -> list?
+; (define lowering-volume
+;    (lambda (midi-note n)
+;     (map (lambda (x) (* x (/ 1 n))) (reverse (higher-octave midi-note n)))))
+
+; (define raising-volume
+;     (lambda (midi-note n)
+;         (map (lambda (x) (* x (/ 1 n))) (lower-octave midi-note n))))
+
+(define raising-pitch
+    (list .01 .22 .03 .04 .05 .06 .07 .08 .09 .10
+          .11 .12 .13 .14 .15 .16 .17 .18 .19 .20
+          .21 .22 .23 .24 .25 .26 .27 .28 .29 .30
+          .31 .32 .33 .34 .35 .36 .37 .38 .39 .40
+          .41 .42 .43 .44 .45 .46 .47 .48 .49 .50
+          .51 .52 .53 .54 .55 .56 .57 .58 .59 .60
+          .61 .62 .63 .64 .65 .66 .67 .68 .69 .70
+          .71 .72 .73 .74 .75 .76 .77 .78 .79 .80
+          .81 .82 .83 .84 .85 .86 .87 .88 .89 .90
+          .91 .92 .93 .94 .95 .96 .97 .98 .99 1))
     
 ;;; (shepard-tone note dur n) -> audio output
 ;;; note -> integer? (0 <= note <= 128)
@@ -40,12 +66,11 @@
 ;;; creates a shepard tone illusion starting at the octave specified by the user for a certain duration repeated n times
 (define shepard-tone
     (lambda (midi-note dur n)
-       (repeat n
-        (par (apply seq (map (lambda (x y) (volume x y)) (octave (- midi-note 8)) raising-volume))
-             (apply seq (map (lambda (m) (note m dur)) (octave midi-note)))
-             (apply seq (map (lambda (x y) (volume x y)) (octave (+ midi-note 8)) lowering-volume))))))
+        (par (apply seq (map (lambda (x y) (volume x y)) (map (lambda (m) (note m dur)) (higher-octave midi-note n)) (reverse raising-pitch)))
+             (apply seq (map (lambda (x y) (mod (bend y) x)) (map (lambda (m) (note m dur)) (main-octave midi-note n)) raising-pitch))
+             (apply seq (map (lambda (x y) (volume x y)) (map (lambda (m) (note m dur)) (lower-octave midi-note n)) raising-pitch)))))
 
-(shepard-tone 60 qn 1)
+(shepard-tone 60 qn 100)
 
 ;;; (define risset-rhythm __ __) -> composition?
 ;;;
