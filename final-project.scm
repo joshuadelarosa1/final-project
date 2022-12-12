@@ -8,75 +8,91 @@
 ;;; (volume note percent) -> comp?
 ;;; note: comp?
 ;;; percent: float?
-;;; Makes a MIDI note louder based on given percent.
+;;; Makes a MIDI note louder/quieter based on given percent.
 (define volume
     (lambda (note percent)
         (mod (dynamics (round (* percent 127))) note)))
 
 (volume (note 60 qn) .4)
 
-;;; (define octave midi-note dwn/up) -> integer? 
-;;; midi-note -> integer? (0 <= note <= 121) (since adding 7)
-;;; dwn/up -> integer? [-5 5]
-;;; This returns a middi-note however many octaves up or down the user indicates thorugh dwn/up. 
-
-(define octave 
-    (lambda (midi-note dwn/up)
-        (+ midi-note (* dwn/up 12))))
-
-(octave 60 -1)
-
+;;; (main-octave midi-note n) -> list?
+;;; midi-note: integer? (0 <= note <= 127)
+;;; n: integer? n > 0
+;;; Creates a list consisting of the main octave for Shepard Tone.
 (define main-octave
     (lambda (midi-note n)
         (make-list n midi-note)))
 
+;;; (higher-octave midi-note n) -> list?
+;;; midi-note: integer? (0 <= note <= 127)
+;;; n: integer? n > 0
+;;; Creates a list consisting of the higher octave for Shepard Tone.
 (define higher-octave
     (lambda (midi-note n)
         (make-list n (- midi-note 12))))
 
+;;; (lower-octave midi-note n) -> list?
+;;; midi-note: integer? (0 <= note <= 127)
+;;; n: integer? n > 0
+;;; Creates a list consisting of the lower octave for Shepard Tone.
 (define lower-octave
     (lambda (midi-note n)
         (make-list n (+ midi-note 12))))
 
-;;; (define raising-volume midi-note) -> list?
-; (define lowering-volume
-;    (lambda (midi-note n)
-;     (map (lambda (x) (* x (/ 1 n))) (reverse (higher-octave midi-note n)))))
+;;; (raising-volume n) -> list?
+;;; n: integer? n > 0
+;;; Creates a list of increasing numbers for the lower-octave volume in Shepard Tone.
+(define raising-volume
+    (lambda (n)
+        (map (lambda (x) (* x (/ 1 n))) (range n))))
 
-; (define raising-volume
-;     (lambda (midi-note n)
-;         (map (lambda (x) (* x (/ 1 n))) (lower-octave midi-note n))))
-
+;;; (raising-pitch n) -> list?
+;;; n: integer? n > 0
+;;; Creates a list of increasing numbers for the main-octave pitch in Shepard Tone.
 (define raising-pitch
-    (list .01 .22 .03 .04 .05 .06 .07 .08 .09 .10
-          .11 .12 .13 .14 .15 .16 .17 .18 .19 .20
-          .21 .22 .23 .24 .25 .26 .27 .28 .29 .30
-          .31 .32 .33 .34 .35 .36 .37 .38 .39 .40
-          .41 .42 .43 .44 .45 .46 .47 .48 .49 .50
-          .51 .52 .53 .54 .55 .56 .57 .58 .59 .60
-          .61 .62 .63 .64 .65 .66 .67 .68 .69 .70
-          .71 .72 .73 .74 .75 .76 .77 .78 .79 .80
-          .81 .82 .83 .84 .85 .86 .87 .88 .89 .90
-          .91 .92 .93 .94 .95 .96 .97 .98 .99 1))
+    (lambda (n)
+        (map (lambda (x) (* x (/ 1 n))) (range n))))
+
+;;; (lowering-volume n) -> list?
+;;; n: integer? n > 0
+;;; Creates a list of decreasing numbers for the higher-octave volume in Shepard Tone.
+(define lowering-volume
+    (lambda (n)
+        (reverse (map (lambda (x) (* x (/ 1 n))) (range n)))))
     
 ;;; (shepard-tone note dur n) -> audio output
-;;; note -> integer? (0 <= note <= 128)
+;;; midi-note -> integer? (0 <= note <= 115)
 ;;; dur -> dur? 
-;;; n -> integer? (0 < n)
-;;; creates a shepard tone illusion starting at the octave specified by the user for a certain duration repeated n times
+;;; n -> integer? (n > 0)
+;;; Create a Shepard Tone illusion starting at the note specified by the user for a certain duration n. 
 (define shepard-tone
     (lambda (midi-note dur n)
-        (par (apply seq (map (lambda (x y) (volume x y)) (map (lambda (m) (note m dur)) (higher-octave midi-note n)) (reverse raising-pitch)))
-             (apply seq (map (lambda (x y) (mod (bend y) x)) (map (lambda (m) (note m dur)) (main-octave midi-note n)) raising-pitch))
-             (apply seq (map (lambda (x y) (volume x y)) (map (lambda (m) (note m dur)) (lower-octave midi-note n)) raising-pitch)))))
+        (let ([volumes (lambda (x y) (volume x y))]
+              [make-note (lambda (m) (note m dur))]
+              [pitch-modifier (lambda (x y) (mod (bend y) x))])
+            (par (apply seq (map volumes (map make-note (higher-octave midi-note n)) (lowering-volume n)))
+                 (apply seq (map pitch-modifier (map make-note (main-octave midi-note n)) (raising-pitch n)))
+                 (apply seq (map volumes (map make-note (lower-octave midi-note n)) (raising-volume n)))))))
 
-(shepard-tone 60 qn 100)
+(shepard-tone 60 qn 20)
+(shepard-tone 60 en 80)
+(shepard-tone 80 hn 10)
+(shepard-tone 20 en 30)
 
 ;;; (define risset-rhythm __ __) -> composition?
 ;;;
 
 (define risset-rhythm {??})
 
+;;; (define octave midi-note dwn/up) -> integer? 
+;;; midi-note -> integer? (0 <= note <= 121) (since adding 7)
+;;; dwn/up -> integer? [-5 5]
+;;; This returns a middi-note however many octaves up or down the user indicates thorugh dwn/up. 
+(define octave 
+    (lambda (midi-note dwn/up)
+        (+ midi-note (* dwn/up 12))))
+
+(octave 60 -1)
 
 ;;; (twinkle-twinkle-litle-star) --> list?
 ;;; list of the midi-note values that make up twinkle-twinkle-little-star
