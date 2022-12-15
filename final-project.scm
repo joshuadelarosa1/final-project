@@ -103,6 +103,36 @@
           67 67 65 65 64 64 62
           67 67 65 65 64 64 62))
 
+;;; (happy-birthday) --> list?
+;;; list of the midi-note values that make up happy-birthday
+
+(define happy-birthday
+    (list 60 60 62 60 65 64
+          60 60 62 60 67 65
+          60 60 60 69 67 64 62
+          70 70 69 65 67 65))
+
+;;; (fur-elise) --> list?
+;;; list of the midi-note values that make up fur-elise
+
+(define fur-elise
+    (list 64 63 64 63 64 71 62 60 69
+          60 64 69 71 64 69 71 60
+          64 63 64 63 64 71 62 60 69
+          60 64 69 71 64 69 71 60
+          71 60 62 64 67 65 64 62 64 64 62 60 64 62 60 64
+          ))
+
+;;; (jingle-bells) --> list?
+;;; list of the midi-note values that make up jingle-bells
+
+(define jingle-bells
+    (list  64 64 64 64 67 60 62 64 
+           65 65 65 64 64 
+           64 64 64 64 67 60 62 64
+           65 65 65 64 64
+           64 64 67 67 65 62 60))
+
 ;;; (original melody) --> composition?
 ;;;     melody : list?
 ;;; Plays the origional given melody before going through the illusion.
@@ -111,6 +141,9 @@
     (lambda (melody)
     (apply seq (map (lambda (x) (note x qn)) melody))))
 (original twinkle-twinkle-litle-star)
+(original happy-birthday)
+(original fur-elise)
+(original jingle-bells)
 
 ;;; (mysterious-melodies melody) --> compositon?
 ;;;     melody : string?
@@ -123,6 +156,8 @@
         )))
 
 (mysterious-melodies twinkle-twinkle-litle-star)
+(mysterious-melodies happy-birthday)
+
 
 ;;; (define jukebox base-midi dur choice n_ -> music output?
 ;;;base-midi -> integer? (10 <= note <= 112) (since adding going octaves above and below)
