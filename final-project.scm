@@ -79,10 +79,26 @@
 (shepard-tone 80 hn 10)
 (shepard-tone 20 en 30)
 
-;;; (define risset-rhythm __ __) -> composition?
-;;;
+;;; (define risset-rhythm notes) -> composition?
+;;;     notes : list?
+;;;     rep : integer?
+;;; This creates a risset rhythm illusion where the given notes are sequenced and get faster and faster for as long as the user
+;;; wants inputed through rep. The starting spead for the notes is 120.
 
-(define risset-rhythm {??})
+(define risset-rhythm 
+    (lambda (notes rep)
+        (let* ([math-help (range 1 (+ (length notes) 1))]
+               [start-tempo (make-list (length notes) 120)]
+               [increment (map (lambda (z r) (+ r (* z (/ 100 (- (length notes) 1))))) math-help start-tempo)]
+               [start (make-list (length notes) 120)]
+               [changed-tempo-notes (map (lambda (x y) (mod (tempo qn x) y)) increment notes)])
+        (repeat rep 
+                (par (apply seq changed-tempo-notes)
+                     )))))
+
+
+(risset-rhythm (list (note 60 qn) (note 70 qn) (note 67 qn) (note 66 qn) (note 60 qn) (note 70 qn) (note 67 qn) (note 66 qn)))
+"_____________"
 
 ;;; (define octave midi-note dwn/up) -> integer? 
 ;;; midi-note -> integer? (0 <= note <= 121) (since adding 7)
