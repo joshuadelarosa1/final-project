@@ -79,27 +79,6 @@
 (shepard-tone 80 hn 10)
 (shepard-tone 20 en 30)
 
-;;; (define risset-rhythm notes) -> composition?
-;;;     notes : list?
-;;;     rep : integer?
-;;; This creates a risset rhythm illusion where the given notes are sequenced and get faster and faster for as long as the user
-;;; wants inputed through rep. The starting spead for the notes is 120.
-
-(define risset-rhythm 
-    (lambda (notes rep)
-        (let* ([math-help (range 1 (+ (length notes) 1))]
-               [start-tempo (make-list (length notes) 120)]
-               [increment (map (lambda (z r) (+ r (* z (/ 100 (- (length notes) 1))))) math-help start-tempo)]
-               [start (make-list (length notes) 120)]
-               [changed-tempo-notes (map (lambda (x y) (mod (tempo qn x) y)) increment notes)])
-        (repeat rep 
-                (par (apply seq changed-tempo-notes)
-                     )))))
-
-
-(risset-rhythm (list (note 60 qn) (note 70 qn) (note 67 qn) (note 66 qn) (note 60 qn) (note 70 qn) (note 67 qn) (note 66 qn)))
-"_____________"
-
 ;;; (define octave midi-note dwn/up) -> integer? 
 ;;; midi-note -> integer? (0 <= note <= 121) (since adding 7)
 ;;; dwn/up -> integer? [-5 5]
@@ -107,8 +86,6 @@
 (define octave 
     (lambda (midi-note dwn/up)
         (+ midi-note (* dwn/up 12))))
-
-(octave 60 -1)
 
 ;;; (twinkle-twinkle-litle-star) --> list?
 ;;; list of the midi-note values that make up twinkle-twinkle-little-star
@@ -162,7 +139,7 @@
 (original jingle-bells)
 
 ;;; (mysterious-melodies melody) --> compositon?
-;;;     melody : string?
+;;;     melody : func? or 0 One of the melody options. 0 if not using mysterious melody.
 ;;; This will create a mysterious melody illusion given the chosen melody 
 
 (define mysterious-melodies
@@ -174,43 +151,42 @@
 (mysterious-melodies twinkle-twinkle-litle-star)
 (mysterious-melodies happy-birthday)
 
-
-;;; (define jukebox base-midi dur choice n_ -> music output?
+;;; (define jukebox base-midi dur choice n_ -> composition?
 ;;;base-midi -> integer? (10 <= note <= 112) (since adding going octaves above and below)
 ;;; dur -> dur?
 ;;; choice -> integer? (0 <= choice <= 3) 
 ;;; n -> integer? positive? 
-;;; melody -> integer? 0 or 1
+;;; melody -> func? or 0 One of the melody options. 0 if not using mysterious melody.
 (define jukebox 
-    (lambda (base-midi dur choice n melody)
+    (lambda (midi-note dur choice n melody)
         (cond 
-            [(= 0 choice) (jukebox base-midi dur (+ 1 (random 3)))]
-            [(= 1 choice) (shepard-tone base-midi dur n)]
-            [(= 2 choice) (mysterious-melodies melody)]
-            [(= 3 choice) (risset-rhythm {??})])))
+            [(= 0 choice) (jukebox midi-note dur (+ 1 (random 3)))]
+            [(= 1 choice) (shepard-tone midi-note dur n)]
+            [(= 2 choice) (mysterious-melodies melody)])))
 
-
-;;; (define jukebox-husk base-midi dur) -> music output
+;;; (define jukebox-husk base-midi dur) -> composition?
 ;;; base-midi -> integer? (10 <= note <= 112) (since adding going octaves above and below)
 ;;; dur -> dur?
-;;; illusion-choice -> string? containing 
+;;; illusion-choice -> string? containing the illusion
 ;;; n -> integer? positive? 
-;;; melody -> integer? 0 or 1
+;;; melody -> func? or 0 One of the melody options. 0 if not using mysterious melody.
 ;;; calls jukebox with either the given arguments, or if those are wrong fills them in with a base 
 ;;; 60 midi value, and qn dur, and repeats n times
 (define jukebox-husk
-    (lambda (base-midi dur illusion-choice n melody)
+    (lambda (midi-note dur illusion-choice n melody)
         (let 
             ([choice 
                 (cond 
                     [(equal? illusion-choice "shepard tone") 1]
                     [(equal? illusion-choice "mysterious melody") 2]
-                    [(equal? illusion-choice "rissett rhythm") 3]
                     [else 0])])
             (cond 
-                [(and (dur? dur) (and (< base-midi 112) (< 0 base-midi))) (jukebox base-midi dur choice n melody)]
+                [(and (dur? dur) (and (< midi-note 112) (< 0 midi-note))) (jukebox midi-note dur choice n melody)]
                 [(dur? dur) (jukebox 60 dur choice n melody)]
-                [(and (< base-midi 112) (< 0 base-midi)) (jukebox base-midi qn choice n melody)]
+                [(and (< midi-note 112) (< 0 midi-note)) (jukebox midi-note qn choice n melody)]
                 [else (jukebox 60 qn choice n melody)]))))
+
+(jukebox-husk 60 qn "shepard tone" 20 0)
+(jukebox-husk 60 qn "mysterious melody" 0 happy-birthday)
 
 
